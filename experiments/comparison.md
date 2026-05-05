@@ -1,8 +1,8 @@
-# Experiment 04: BoN vs PrivBoN vs ITP vs PrivITP
+# BoN vs PrivBoN vs ITP vs PrivITP
 
 The main comparison experiment. Evaluates four candidate-selection algorithms
 on a scored response dataset using the best `sigma` and `beta` values selected
-from the upstream sweeps (Experiments 02 and 03):
+from the upstream sweeps:
 
 | Algorithm | Description |
 |---|---|
@@ -25,7 +25,7 @@ pip install numpy matplotlib tqdm
 
 ## Input
 
-A scored JSONL file produced by Experiment 01. Each line must contain a
+A scored JSONL file where each line contains a
 `responses` array, where each response has at least:
 
 - `is_correct` (0 or 1)
@@ -62,17 +62,6 @@ python run.py \
 | `--rm_label` | Label shown in plot/print output. | `Reward Model` |
 | `--dataset_label` | Label shown in plot/print output. | `Evaluation Set` |
 
-## Notes
-
-- Proxy rewards are globally z-scored across the full dataset, so `sigma` and
-  `beta` are comparable across reward models. The same convention is used in
-  Experiment 02.
-- The default `sigma_phase = sigma_gumbel / 2` splits the total Gaussian noise
-  budget across the two PrivITP phases. Combined PrivITP std is then
-  `sqrt(2) * sigma_phase = sigma_gumbel / sqrt(2)`. Override `--sigma_phase`
-  directly if a different budget allocation is needed.
-- The script prints a per-N table for each algorithm to stdout in addition to
-  saving the plot, which is useful when assembling LaTeX tables for the paper.
 
 ## Output
 
