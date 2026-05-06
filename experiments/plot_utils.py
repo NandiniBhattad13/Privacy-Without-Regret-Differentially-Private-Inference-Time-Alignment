@@ -12,8 +12,7 @@ import matplotlib as mpl
 
 
 def configure_matplotlib(grid: bool = True) -> None:
-    """Apply publication-quality rcParams.
-
+    """
     Args:
         grid: Whether to enable the background grid. Default True.
               Pass False for bar-chart figures where a grid would be distracting.
