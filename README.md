@@ -1,4 +1,10 @@
-# Privacy-Without-Regret-Differentially-Private-Inference-Time-Alignment
+# Privacy-Without-Regret: Differentially Private Inference-Time Alignment
+
+This repository is the official implementation of [My Paper Title](https://arxiv.org/abs/XXXX.XXXXX).
+
+> 📋 *Anonymous submission. Author and affiliation information has been stripped from the source files. The hyperlink above will be filled in upon de-anonymization.*
+
+The contribution of the paper is a family of inference-time selection algorithms for Best-of-N decoding: a private variant (**PrivBoN**), a pessimistic variant (**ITP**), a private and pessimistic variant (**PrivITP**), and a fixed-budget rejection-sampling controller (**FRSC**). Because the contribution is purely inference-time, **this repository contains no model training code**. The experiments operate on a precomputed dataset of scored candidate responses (see *Input data* below).
 
 ## Requirements
 
@@ -8,50 +14,62 @@ To install requirements:
 pip install -r requirements.txt
 ```
 
-The repository was developed and tested on Python 3.9+. Response generation and reward-model scoring requires a CUDA-capable GPU. All other experiments can be run on CPU using only `numpy`, `scipy`, `matplotlib`, and `tqdm`.
+The repository was developed and tested on Python 3.9+. All experiments run on CPU using only `numpy`, `scipy`, `matplotlib`, and `tqdm`.
 
-If the base policy or reward model is gated on the Hugging Face Hub, set:
+## Training
 
-```bash
-export HF_TOKEN=<your_huggingface_token>
+This repository does not include training code. The contribution of the paper is an **inference-time selection algorithm**, not a training procedure. The experiments operate on a precomputed scored dataset; see *Input data* below.
+
+## Input data
+
+Each evaluation script expects a precomputed scored dataset passed via `--input_file`. The file must be either a JSONL (one record per line) or a JSON array. Each record must follow this schema:
+
+```json
+{
+  "prompt": "<the prompt text>",
+  "gt_answer": "<ground-truth answer>",
+  "responses": [
+    {
+      "text": "<sampled response text>",
+      "is_correct": 0,
+      "proxy_reward": 1.234
+    }
+  ]
+}
 ```
 
-The base policies and reward models used in the paper are public, pretrained models loaded directly from the Hugging Face Hub (see *Pre-trained Models* below).
+Each response must contain at least `is_correct` (0 or 1) and `proxy_reward` (float; entries with `null` are skipped). The number of responses per prompt must be at least as large as the maximum N used by the experiment. The ITP vs PrivITP script (`itp_vs_privitp_diff_sigma.py`) requires `2 * 2^n_max_exp` responses per prompt due to its disjoint phase split.
+
+The paper reports results on three datasets evaluated under multiple (base policy, reward model) combinations. To reproduce a particular configuration, supply the corresponding scored file to `--input_file` for each script below.
 
 ## Evaluation
 
-Given a scored dataset for one (base model, reward model) pair, the evaluation pipeline has four stages:
+Given a scored dataset for one (base model, reward model) pair, the evaluation pipeline has four stages. In each command below, replace `<scored_data>` with the path to your scored file.
 
-1. **Hyperparameter sweep over `beta`** for ITP (Experiment 02).
-2. **Hyperparameter sweep over `sigma`** for PrivBoN (Experiment 03).
-3. **Main four-way comparison** (BoN, PrivBoN, ITP, PrivITP) at the best `beta` and `sigma` from stages 1–2, plus the **ITP-vs-PrivITP experiment** at varying sigma values.
-4. **Fixed-budget rejection-sampling controller (FRSC)** experiment under a fixed total privacy budget.
-
-### Step 1: select beta (ITP sweep)
+### Step 1: Select beta — ITP hyperparameter sweep
 
 ```eval-beta
-cd experiments/02-pessimistic-bon-beta-sweep
-python run.py \
-    --input_file ../01-dataset-generation/scored_responses.jsonl \
+python beta.py \
+    --input_file <scored_data> \
     --output_basename beta_sweep \
     --betas 0.0005 0.005 0.01 0.05 0.1 0.5 1.0 \
     --rm_label "<reward_model_name>" \
     --dataset_label "<dataset_name>"
 ```
 
-Inspect the resulting plot and pick the `beta` that maximizes accuracy lift at the largest N. Call this `BETA_STAR`.
+Inspect the output plot and pick the `beta` that maximizes accuracy lift at the largest N. Call this `BETA_STAR`.
 
-### Step 2: select sigma (PrivBoN sweep)
+### Step 2: Select sigma — PrivBoN hyperparameter sweep
 
 ```eval-sigma
-cd ../03-private-bon-sigma-sweep
-python run.py \
-    --input_file ../01-dataset-generation/scored_responses.jsonl \
+python sigma.py \
+    --input_file <scored_data> \
     --output_basename sigma_sweep_accuracy \
     --metric accuracy_lift \
     --sigmas 0.5 0.75 1.0 1.25 1.5 2.0
-python run.py \
-    --input_file ../01-dataset-generation/scored_responses.jsonl \
+
+python sigma.py \
+    --input_file <scored_data> \
     --output_basename sigma_sweep_reward \
     --metric estimated_reward \
     --sigmas 0.1 0.2 0.5 1.0 1.5 2.0
@@ -59,43 +77,79 @@ python run.py \
 
 The accuracy-lift plot is the primary selection signal; the estimated-reward plot serves as a complementary diagnostic. Call the chosen value `SIGMA_STAR`.
 
-### Step 3: main comparison and data-split experiment
+### Step 3: Main four-way comparison and ITP vs PrivITP experiment
 
-Plug `BETA_STAR` and `SIGMA_STAR` into the comparison experiment:
+Plug `BETA_STAR` and `SIGMA_STAR` into the four-way comparison (BoN, PrivBoN, ITP, PrivITP):
 
 ```eval-comparison
-cd ../04-bon-vs-privbon-vs-itp-vs-privitp
-python run.py \
-    --input_file ../01-dataset-generation/scored_responses.jsonl \
+python Comparison_of_ITP__BON_PrivITP__PrivBON.py \
+    --input_file <scored_data> \
     --output_basename comparison_results \
     --sigma_gumbel <SIGMA_STAR> \
     --beta <BETA_STAR>
 ```
 
-Run the ITP-vs-PrivITP data-split experiment on the same dataset (this experiment requires `2 * 2^n_max_exp` candidate responses per prompt because of the disjoint phase split; see its README for details):
+Run the ITP vs PrivITP experiment at varying sigma values on the same dataset. This script requires `2 * 2^n_max_exp` candidate responses per prompt due to the disjoint phase split (see `itp_comparison.md` for details):
 
 ```eval-split
-cd ../05-itp-vs-privitp-data-split
-python run.py \
-    --input_file ../01-dataset-generation/scored_responses.jsonl \
-    --output_basename itp_vs_privitp_split \
+python itp_vs_privitp_diff_sigma.py \
+    --input_file <scored_data> \
+    --output_basename itp_vs_privitp \
     --beta <BETA_STAR>
 ```
 
-### Step 4: privacy budget experiment (FRSC)
+### Step 4: Privacy budget experiment (FRSC)
 
 ```eval-frsc
-cd ../06-privitp-privacy-budget-sweep
-python run.py \
-    --input_file ../01-dataset-generation/scored_responses.jsonl \
-    --output_basename privitp_budget \
+python fsrc.py \
+    --input_file <scored_data> \
+    --output_basename frsc_results \
     --beta <BETA_STAR> \
     --sigmas 1.0 5.0 8.0 10.0 \
     --ebudget 50.0
 ```
 
-Each evaluation script saves a PDF and a PNG. Experiments 04, 05, and 06 additionally print per-N (or per-sigma) statistics to stdout in a format suitable for assembling LaTeX tables.
+Each script saves a PDF and PNG of the output figure. The comparison and FRSC scripts additionally print per-N (or per-sigma) statistics to stdout suitable for assembling LaTeX tables.
 
 ## Pre-trained Models
 
-This repository does not train or release any models. The base policies and reward models used in the paper are public, pretrained models on the Hugging Face Hub and are loaded directly by Experiment 01 via the `--model_name` and `--reward_model_name` arguments.
+Not applicable. This repository does not train or release any models.
+
+## Results
+
+### Best-of-N selection: accuracy lift over base policy
+
+| Algorithm | Accuracy lift over base policy at N=2^12 | Estimated proxy reward at N=2^12 |
+| --------- | ----------------------------------------- | -------------------------------- |
+| BoN       | `<fill in>`                               | `<fill in>`                      |
+| PrivBoN   | `<fill in>`                               | `<fill in>`                      |
+| ITP       | `<fill in>`                               | `<fill in>`                      |
+| PrivITP   | `<fill in>`                               | `<fill in>`                      |
+
+> 📋 *These numbers are printed to stdout by `Comparison_of_ITP__BON_PrivITP__PrivBON.py` when run with the command in Step 3.*
+
+### Privacy-budget efficiency under FRSC
+
+| Sigma | # prompts processed (FRSC) | Basic-composition baseline `T` |
+| ----- | -------------------------- | ------------------------------ |
+|  1.0  | `<fill in>`                | `<fill in>`                    |
+|  5.0  | `<fill in>`                | `<fill in>`                    |
+|  8.0  | `<fill in>`                | `<fill in>`                    |
+| 10.0  | `<fill in>`                | `<fill in>`                    |
+
+> 📋 *These numbers are printed to stdout by `fsrc.py` when run with the command in Step 4.*
+
+The headline figures of the paper are produced by:
+
+| Paper figure | Script |
+| ------------ | ------ |
+| Beta sweep (ITP)                        | `beta.py` |
+| Sigma sweep, accuracy lift (PrivBoN)    | `sigma.py --metric accuracy_lift` |
+| Sigma sweep, estimated reward (PrivBoN) | `sigma.py --metric estimated_reward` |
+| Main four-way comparison                | `Comparison_of_ITP__BON_PrivITP__PrivBON.py` |
+| ITP vs PrivITP at varying sigma         | `itp_vs_privitp_diff_sigma.py` |
+| FRSC privacy-budget sweep               | `fsrc.py` |
+
+## Contributing
+
+This code is released under the MIT License (see `LICENSE`). Contributions, bug reports, and suggestions are welcome via pull requests and issues once the repository is de-anonymized.
