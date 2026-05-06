@@ -28,7 +28,7 @@ pip install numpy matplotlib tqdm
 
 ## Input
 
-A scored JSONL file produced by Experiment 01. Because of the two-phase split,
+A scored JSONL file with one record per line. Because of the two-phase split,
 **each prompt must have at least `2 * 2^n_max_exp` candidate responses**.
 
 Each response must contain:
@@ -39,8 +39,8 @@ Each response must contain:
 ## Run
 
 ```bash
-python run.py \
-    --input_file ../01-dataset-generation/scored_responses.jsonl \
+python itp_vs_privitp_diff_sigma.py \
+    --input_file /path/to/scored_responses.jsonl \
     --output_basename itp_vs_privitp_split \
     --beta 0.1 \
     --sigmas 0.5 1.5 4.0 \
@@ -54,7 +54,7 @@ python run.py \
 
 | Argument | Description | Default |
 |---|---|---|
-| `--input_file` | Scored JSONL from Experiment 01. | required |
+| `--input_file` | Scored JSONL (see top-level README for schema). | required |
 | `--output_basename` | Output filename without extension. | `itp_vs_privitp_split` |
 | `--beta` | Pessimism strength (raw reward space; see note below). | `0.1` |
 | `--sigmas` | Total noise budgets to sweep over. Each is split equally between phases. | `0.5 1.5 4.0` |
