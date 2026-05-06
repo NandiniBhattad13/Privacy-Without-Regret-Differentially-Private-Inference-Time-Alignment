@@ -243,23 +243,7 @@ def main():
     all_proxy_raw = np.array(all_proxy_raw)
     GLOBAL_MEAN = float(np.mean(all_proxy_raw))
     GLOBAL_STD = float(np.std(all_proxy_raw))
-
-    print("\n=== Reward Normalization Statistics ===")
-    print(f"Raw reward mean:   {GLOBAL_MEAN:.6f}")
-    print(f"Raw reward std:    {GLOBAL_STD:.6f}")
-    print(f"Raw reward range:  [{np.min(all_proxy_raw):.4f}, {np.max(all_proxy_raw):.4f}]")
-    print("---------------------------------------")
-    print("Hyperparameters (normalized reward space):")
-    print(f"  sigma_gumbel (PrivBoN):              {args.sigma_gumbel:.4f}")
-    print(f"  sigma_phase  (PrivITP per phase):    {args.sigma_phase:.4f}")
-    print(f"  combined PrivITP std (sqrt(2)*sp):   {args.sigma_phase * np.sqrt(2):.4f}")
-    print(f"  beta         (ITP / PrivITP):        {args.beta:.4f}")
-    print("Raw-space equivalents:")
-    print(f"  sigma_gumbel_raw = {args.sigma_gumbel * GLOBAL_STD:.6f}")
-    print(f"  sigma_phase_raw  = {args.sigma_phase  * GLOBAL_STD:.6f}")
-    print(f"  beta_raw         = {args.beta         * GLOBAL_STD:.6f}")
-    print("=======================================\n")
-
+    
     base_gold = float(np.mean(all_correct))
     base_proxy_norm = 0.0
     print(f"Base policy accuracy: {base_gold * 100:.2f}%\n")
