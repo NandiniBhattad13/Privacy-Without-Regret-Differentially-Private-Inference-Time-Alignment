@@ -34,8 +34,8 @@ A scored JSONL file where each line contains a
 ## Run
 
 ```bash
-python run.py \
-    --input_file ../01-dataset-generation/scored_responses.jsonl \
+python Comparison_of_ITP__BON_PrivITP__PrivBON.py \
+    --input_file /path/to/scored_responses.jsonl \
     --output_basename comparison_results \
     --sigma_gumbel 1.0 \
     --beta 0.05 \
@@ -50,7 +50,7 @@ python run.py \
 
 | Argument | Description | Default |
 |---|---|---|
-| `--input_file` | Scored JSONL from Experiment 01. | required |
+| `--input_file` | Scored JSONL (see top-level README for schema). | required |
 | `--output_basename` | Output filename without extension. | `comparison_results` |
 | `--sigma_gumbel` | Best `sigma` from the PrivBoN-Gumbel sweep (normalized space). | `1.0` |
 | `--beta` | Best `beta` from the ITP sweep (normalized space). | `0.05` |
