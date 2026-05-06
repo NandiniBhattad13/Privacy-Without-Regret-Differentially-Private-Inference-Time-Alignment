@@ -39,6 +39,7 @@ Given a scored dataset for one (base model, reward model) pair, the evaluation p
 ### Step 1: Select beta — ITP hyperparameter sweep
 
 ```eval-beta
+cd ablation_study
 python beta.py \
     --input_file <scored_data> \
     --output_basename beta_sweep \
@@ -52,6 +53,7 @@ Inspect the output plot and pick the `beta` that maximizes accuracy lift at the 
 ### Step 2: Select sigma — PrivBoN hyperparameter sweep
 
 ```eval-sigma
+cd ablation_study
 python sigma.py \
     --input_file <scored_data> \
     --output_basename sigma_sweep_accuracy \
@@ -72,6 +74,7 @@ The accuracy-lift plot is the primary selection signal; the estimated-reward plo
 Plug `BETA_STAR` and `SIGMA_STAR` into the four-way comparison (BoN, PrivBoN, ITP, PrivITP):
 
 ```eval-comparison
+cd experiments
 python Comparison_of_ITP_BON_PrivITP_PrivBON.py \
     --input_file <scored_data> \
     --output_basename comparison_results \
@@ -82,6 +85,7 @@ python Comparison_of_ITP_BON_PrivITP_PrivBON.py \
 Run the ITP vs PrivITP experiment at varying sigma values on the same dataset. This script requires `2 * 2^n_max_exp` candidate responses per prompt due to the disjoint phase split (see `itp_comparison.md` for details):
 
 ```eval-split
+cd experiments
 python itp_vs_privitp_diff_sigma.py \
     --input_file <scored_data> \
     --output_basename itp_vs_privitp \
@@ -91,6 +95,7 @@ python itp_vs_privitp_diff_sigma.py \
 ### Step 4: Privacy budget experiment (FRSC)
 
 ```eval-frsc
+cd fsrc_composition
 python fsrc.py \
     --input_file <scored_data> \
     --output_basename frsc_results \
