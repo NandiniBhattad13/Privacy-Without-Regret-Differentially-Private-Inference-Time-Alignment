@@ -1,11 +1,5 @@
 # Privacy-Without-Regret: Differentially Private Inference-Time Alignment
 
-This repository is the official implementation of [My Paper Title](https://arxiv.org/abs/XXXX.XXXXX).
-
-> 📋 *Anonymous submission. Author and affiliation information has been stripped from the source files. The hyperlink above will be filled in upon de-anonymization.*
-
-The contribution of the paper is a family of inference-time selection algorithms for Best-of-N decoding: a private variant (**PrivBoN**), a pessimistic variant (**ITP**), a private and pessimistic variant (**PrivITP**), and a fixed-budget rejection-sampling controller (**FRSC**). Because the contribution is purely inference-time, **this repository contains no model training code**. The experiments operate on a precomputed dataset of scored candidate responses (see *Input data* below).
-
 ## Requirements
 
 To install requirements:
@@ -15,10 +9,6 @@ pip install -r requirements.txt
 ```
 
 The repository was developed and tested on Python 3.9+. All experiments run on CPU using only `numpy`, `scipy`, `matplotlib`, and `tqdm`.
-
-## Training
-
-This repository does not include training code. The contribution of the paper is an **inference-time selection algorithm**, not a training procedure. The experiments operate on a precomputed scored dataset; see *Input data* below.
 
 ## Input data
 
@@ -110,46 +100,3 @@ python fsrc.py \
 ```
 
 Each script saves a PDF and PNG of the output figure. The comparison and FRSC scripts additionally print per-N (or per-sigma) statistics to stdout suitable for assembling LaTeX tables.
-
-## Pre-trained Models
-
-Not applicable. This repository does not train or release any models.
-
-## Results
-
-### Best-of-N selection: accuracy lift over base policy
-
-| Algorithm | Accuracy lift over base policy at N=2^12 | Estimated proxy reward at N=2^12 |
-| --------- | ----------------------------------------- | -------------------------------- |
-| BoN       | `<fill in>`                               | `<fill in>`                      |
-| PrivBoN   | `<fill in>`                               | `<fill in>`                      |
-| ITP       | `<fill in>`                               | `<fill in>`                      |
-| PrivITP   | `<fill in>`                               | `<fill in>`                      |
-
-> 📋 *These numbers are printed to stdout by `Comparison_of_ITP__BON_PrivITP__PrivBON.py` when run with the command in Step 3.*
-
-### Privacy-budget efficiency under FRSC
-
-| Sigma | # prompts processed (FRSC) | Basic-composition baseline `T` |
-| ----- | -------------------------- | ------------------------------ |
-|  1.0  | `<fill in>`                | `<fill in>`                    |
-|  5.0  | `<fill in>`                | `<fill in>`                    |
-|  8.0  | `<fill in>`                | `<fill in>`                    |
-| 10.0  | `<fill in>`                | `<fill in>`                    |
-
-> 📋 *These numbers are printed to stdout by `fsrc.py` when run with the command in Step 4.*
-
-The headline figures of the paper are produced by:
-
-| Paper figure | Script |
-| ------------ | ------ |
-| Beta sweep (ITP)                        | `beta.py` |
-| Sigma sweep, accuracy lift (PrivBoN)    | `sigma.py --metric accuracy_lift` |
-| Sigma sweep, estimated reward (PrivBoN) | `sigma.py --metric estimated_reward` |
-| Main four-way comparison                | `Comparison_of_ITP__BON_PrivITP__PrivBON.py` |
-| ITP vs PrivITP at varying sigma         | `itp_vs_privitp_diff_sigma.py` |
-| FRSC privacy-budget sweep               | `fsrc.py` |
-
-## Contributing
-
-This code is released under the MIT License (see `LICENSE`). Contributions, bug reports, and suggestions are welcome via pull requests and issues once the repository is de-anonymized.
