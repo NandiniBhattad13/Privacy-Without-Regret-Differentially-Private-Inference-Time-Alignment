@@ -14,9 +14,6 @@ statistically independent.
 | **ITP**     | Standard pessimistic BoN. Uses only the phase-2 pool with a clean `lambda_hat` computed on phase 2. |
 | **PrivITP** | Two-phase private ITP. `lambda_hat` is computed on the phase-1 pool with `N(0, sigma_X)` noise added; the phase-2 rewards used in rejection sampling have `N(0, sigma_Z)` noise added. By default `sigma_X = sigma_Z = sigma / 2`. |
 
-The truncation envelope used in PrivITP is `R_max(phase2) + sigma_Z * L`, where
-`L` is configurable.
-
 ## Requirements
 
 - Python 3.9+
