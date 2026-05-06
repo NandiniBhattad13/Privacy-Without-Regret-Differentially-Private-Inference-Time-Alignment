@@ -1,7 +1,7 @@
-# Experiment 05: ITP vs PrivITP under Two-Phase Data Splitting
+# ITP vs PrivITP 
 
 This experiment compares non-private ITP against PrivITP across multiple values
-of `sigma`, but with one important twist relative to Experiment 04: each
+of `sigma`, but with one important twist: each
 prompt's candidate pool is **split into two disjoint halves** of size N. The
 first half is used to compute the threshold `lambda_hat`; the second half is
 used as the rejection-sampling pool. This data split keeps phase 1 and phase 2
@@ -68,18 +68,16 @@ python run.py \
 
 ## Important notes
 
-- **Reward space:** unlike Experiment 02 and Experiment 04, this script
-  operates on **raw proxy rewards** (no global z-score normalization). The
+- **Reward space:** this script operates on **raw proxy rewards**. The
   `--sigmas` and `--beta` values are therefore in raw reward units. If
-  reusing best hyperparameters from Experiments 02 / 04, multiply the
-  normalized values by the raw reward standard deviation to get the equivalent
-  raw-space values.
+  reusing best hyperparameters, multiply the normalized values by the
+  raw reward standard deviation to get the equivalent raw-space values.
 - **Sample budget:** the data-split design halves the effective N per phase, so
   you need twice as many candidate responses per prompt. With the default
   `--n_max_exp 12`, every prompt must have at least 8192 candidates.
 - The ITP baseline reported in the plot uses only the phase-2 pool, so its
-  performance can differ slightly from the ITP curve in Experiment 04 (which
-  uses a single shared pool of size N).
+  performance can differ slightly from the ITP curve in the comparison of
+  all four algorithms (which uses a single shared pool of size N).
 
 ## Output
 
