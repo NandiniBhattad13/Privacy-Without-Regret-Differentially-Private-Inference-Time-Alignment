@@ -1,4 +1,4 @@
-# Experiment 06: PrivITP Privacy Budget Sweep over Sigma
+# PrivITP Privacy Budget Sweep (FRSC)
 
 This experiment evaluates PrivITP under a **fixed total privacy budget** across
 several noise scales `sigma`. Unlike the earlier experiments, which fix N and
@@ -39,7 +39,7 @@ pip install numpy scipy matplotlib
 
 ## Input
 
-A scored dataset produced by Experiment 01. Both formats are accepted:
+A scored dataset Both formats are accepted:
 
 - JSONL (one record per line)
 - A single JSON array of records
@@ -55,8 +55,8 @@ fewer are dropped.
 ## Run
 
 ```bash
-python run.py \
-    --input_file ../01-dataset-generation/scored_responses.json \
+python fsrc.py \
+    --input_file /path/to/scored_responses.json \
     --output_basename privitp_sigma_sweep \
     --beta 0.05 \
     --sigmas 1.0 5.0 8.0 10.0 \
@@ -84,7 +84,7 @@ python run.py \
 
 - **Reward space:** rewards are globally z-score normalized at the start of
   each (sigma, seed) run. The `--sigmas` and `--beta` values are therefore in
-  normalized reward units, consistent with Experiments 02 and 04.
+  normalized reward units, consistent with the beta and sigma sweep scripts.
 - **Sequential rejection sampling:** Phase 2 runs an actual Bernoulli draw at
   each candidate and stops at the first acceptance. The realized stopping
   time is what feeds into the accountant; this is why the realized epsilon
