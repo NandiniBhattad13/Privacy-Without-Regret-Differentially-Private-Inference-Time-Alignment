@@ -72,7 +72,7 @@ The accuracy-lift plot is the primary selection signal; the estimated-reward plo
 Plug `BETA_STAR` and `SIGMA_STAR` into the four-way comparison (BoN, PrivBoN, ITP, PrivITP):
 
 ```eval-comparison
-python Comparison_of_ITP__BON_PrivITP__PrivBON.py \
+python Comparison_of_ITP_BON_PrivITP_PrivBON.py \
     --input_file <scored_data> \
     --output_basename comparison_results \
     --sigma_gumbel <SIGMA_STAR> \
