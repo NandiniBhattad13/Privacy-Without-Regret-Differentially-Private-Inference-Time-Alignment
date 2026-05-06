@@ -8,7 +8,7 @@ To install requirements:
 pip install -r requirements.txt
 ```
 
-The repository was developed and tested on Python 3.9+. Experiment 01 (response generation and reward-model scoring) requires a CUDA-capable GPU. All other experiments (02–06) run on CPU using only `numpy`, `scipy`, `matplotlib`, and `tqdm`.
+The repository was developed and tested on Python 3.9+. Response generation and reward-model scoring requires a CUDA-capable GPU. All other experiments can be run on CPU using only `numpy`, `scipy`, `matplotlib`, and `tqdm`.
 
 If the base policy or reward model is gated on the Hugging Face Hub, set:
 
@@ -18,35 +18,14 @@ export HF_TOKEN=<your_huggingface_token>
 
 The base policies and reward models used in the paper are public, pretrained models loaded directly from the Hugging Face Hub (see *Pre-trained Models* below).
 
-**Experiment 01**, generates and scores the candidate-response dataset that all evaluation experiments depend on. To produce this dataset:
-
-```bash
-# Step 1: generate N candidate responses per MMLU prompt with the base policy
-cd experiments/01-dataset-generation
-python generate_responses.py \
-    --model_name microsoft/Phi-3-mini-4k-instruct \
-    --subjects college_mathematics college_chemistry \
-    --n_samples 10000 \
-    --output_file generated_responses.jsonl
-
-# Step 2: score the generated responses with the reward model
-python score_responses.py \
-    --input_file generated_responses.jsonl \
-    --output_file scored_responses.jsonl \
-    --reward_model_name OpenAssistant/reward-model-deberta-v3-large-v2 \
-    --rm_format oasst
-```
-
-To reproduce the cross-model results in the paper, change `--model_name` and `--reward_model_name` accordingly and re-run with a different `--output_file`.
-
 ## Evaluation
 
 Given a scored dataset for one (base model, reward model) pair, the evaluation pipeline has four stages:
 
 1. **Hyperparameter sweep over `beta`** for ITP (Experiment 02).
 2. **Hyperparameter sweep over `sigma`** for PrivBoN (Experiment 03).
-3. **Main four-way comparison** (BoN, PrivBoN, ITP, PrivITP) at the best `beta` and `sigma` from stages 1–2 (Experiment 04), plus the **ITP-vs-PrivITP data-split experiment** at the same hyperparameters (Experiment 05).
-4. **Fixed-budget rejection-sampling controller (FRSC)** experiment under a fixed total privacy budget (Experiment 06).
+3. **Main four-way comparison** (BoN, PrivBoN, ITP, PrivITP) at the best `beta` and `sigma` from stages 1–2, plus the **ITP-vs-PrivITP experiment** at varying sigma values.
+4. **Fixed-budget rejection-sampling controller (FRSC)** experiment under a fixed total privacy budget.
 
 ### Step 1: select beta (ITP sweep)
 
