@@ -22,48 +22,13 @@ import json
 import random
 import warnings
 
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 
-warnings.filterwarnings("ignore")
+from plot_utils import configure_matplotlib
 
-def configure_matplotlib():
-    mpl.rcParams.update({
-        "font.size": 14,
-        "axes.titlesize": 16,
-        "axes.labelsize": 15,
-        "xtick.labelsize": 13,
-        "ytick.labelsize": 13,
-        "legend.fontsize": 11,
-        "figure.titlesize": 17,
-        "font.family": "serif",
-        "font.serif": ["Times New Roman", "DejaVu Serif"],
-        "mathtext.fontset": "cm",
-        "axes.linewidth": 1.2,
-        "lines.linewidth": 2.2,
-        "lines.markersize": 8,
-        "axes.grid": True,
-        "grid.alpha": 0.4,
-        "grid.linestyle": "--",
-        "grid.linewidth": 0.6,
-        "xtick.major.size": 5,
-        "ytick.major.size": 5,
-        "xtick.major.width": 1.0,
-        "ytick.major.width": 1.0,
-        "xtick.direction": "in",
-        "ytick.direction": "in",
-        "savefig.dpi": 300,
-        "savefig.bbox": "tight",
-        "savefig.pad_inches": 0.05,
-        "pdf.fonttype": 42,
-        "ps.fonttype": 42,
-        "legend.frameon": True,
-        "legend.framealpha": 0.92,
-        "legend.edgecolor": "black",
-        "legend.fancybox": False,
-    })
+warnings.filterwarnings("ignore")
 
 
 def parse_args():
@@ -71,7 +36,7 @@ def parse_args():
         description="Main comparison: BoN vs PrivBoN vs ITP vs PrivITP."
     )
     parser.add_argument("--input_file", type=str, required=True,
-                        help="Scored JSONL produced by Experiment 01.")
+                        help="Scored JSONL (see top-level README for schema).")
     parser.add_argument("--output_basename", type=str, default="comparison_results",
                         help="Output filename without extension; PDF and PNG are written.")
     parser.add_argument("--sigma_gumbel", type=float, default=1.0,
@@ -171,7 +136,7 @@ def get_private_pessimism_two_phase(proxy_rewards, beta, sigma_phase, num_sample
     # Phase 1: noisy lambda_hat
     lam_clean = compute_norm_constant(proxy_rewards, beta)
     g_lam = np.random.randn(num_samples) * sigma_phase
-    lam_noisy = lam_clean + g_lam  # (num_samples,)
+    lam_noisy = lam_clean + g_lam          # (num_samples,)
 
     # Phase 2: noisy rewards
     g_r = np.random.randn(N, num_samples) * sigma_phase
@@ -198,8 +163,10 @@ def get_private_pessimism_two_phase(proxy_rewards, beta, sigma_phase, num_sample
 
 def calc_metrics(probs, gold_rewards, proxy_rewards_norm,
                  fallback_prob, base_gold, base_proxy_norm):
-    expected_true = np.sum(probs * np.array(gold_rewards)) + fallback_prob * base_gold
-    expected_proxy = np.sum(probs * np.array(proxy_rewards_norm)) + fallback_prob * base_proxy_norm
+    expected_true = (np.sum(probs * np.array(gold_rewards))
+                     + fallback_prob * base_gold)
+    expected_proxy = (np.sum(probs * np.array(proxy_rewards_norm))
+                      + fallback_prob * base_proxy_norm)
     return expected_true, expected_proxy
 
 
@@ -236,10 +203,11 @@ def main():
             if r.get("proxy_reward") is not None:
                 all_correct.append(r["is_correct"])
                 all_proxy_raw.append(r["proxy_reward"])
+
     all_proxy_raw = np.array(all_proxy_raw)
     GLOBAL_MEAN = float(np.mean(all_proxy_raw))
     GLOBAL_STD = float(np.std(all_proxy_raw))
-    
+
     base_gold = float(np.mean(all_correct))
     base_proxy_norm = 0.0
     print(f"Base policy accuracy: {base_gold * 100:.2f}%\n")
@@ -260,7 +228,8 @@ def main():
             continue
 
         sc_arr = np.array([r["is_correct"] for r in responses])
-        sr_arr = (np.array([r["proxy_reward"] for r in responses]) - GLOBAL_MEAN) / GLOBAL_STD
+        sr_arr = (np.array([r["proxy_reward"] for r in responses])
+                  - GLOBAL_MEAN) / GLOBAL_STD
 
         for n in n_values:
             tmp = {algo: {"t": [], "p": []} for algo in results}
@@ -272,17 +241,20 @@ def main():
 
                 # BoN
                 p_bon = get_standard_bon_probs(prox_r)
-                t, p = calc_metrics(p_bon, gold_r, prox_r, 0.0, base_gold, base_proxy_norm)
+                t, p = calc_metrics(p_bon, gold_r, prox_r, 0.0,
+                                    base_gold, base_proxy_norm)
                 tmp["BoN"]["t"].append(t); tmp["BoN"]["p"].append(p)
 
                 # PrivBoN
                 p_priv = get_gumbel_probs(prox_r, args.sigma_gumbel)
-                t, p = calc_metrics(p_priv, gold_r, prox_r, 0.0, base_gold, base_proxy_norm)
+                t, p = calc_metrics(p_priv, gold_r, prox_r, 0.0,
+                                    base_gold, base_proxy_norm)
                 tmp["PrivBoN"]["t"].append(t); tmp["PrivBoN"]["p"].append(p)
 
                 # ITP
                 p_itp, fb_itp = get_pessimism_probs(prox_r, args.beta)
-                t, p = calc_metrics(p_itp, gold_r, prox_r, fb_itp, base_gold, base_proxy_norm)
+                t, p = calc_metrics(p_itp, gold_r, prox_r, fb_itp,
+                                    base_gold, base_proxy_norm)
                 tmp["ITP"]["t"].append(t); tmp["ITP"]["p"].append(p)
 
                 # PrivITP
@@ -313,11 +285,14 @@ def main():
 
     # ----- Plot configs -----
     plot_configs = [
-        ("BoN",     "BoN",                                                   "black",   "X", "--", 2.5),
-        ("PrivBoN", fr"PrivBoN ($\sigma={args.sigma_gumbel}$)",               "#2ca02c", "s", "-",  2.0),
-        ("ITP",     fr"ITP ($\beta={args.beta}$)",                            "#d62728", "^", "-",  2.0),
-        ("PrivITP", fr"PrivITP ($\sigma_\phi={args.sigma_phase}, \beta={args.beta}$)",
-                                                                              "#9467bd", "D", "-.", 2.5),
+        ("BoN",     "BoN",
+         "black",   "X", "--", 2.5),
+        ("PrivBoN", fr"PrivBoN ($\sigma={args.sigma_gumbel}$)",
+         "#2ca02c", "s", "-",  2.0),
+        ("ITP",     fr"ITP ($\beta={args.beta}$)",
+         "#d62728", "^", "-",  2.0),
+        ("PrivITP", fr"PrivITP ($\sigma_\phi={args.sigma_phase},\ \beta={args.beta}$)",
+         "#9467bd", "D", "-.", 2.5),
     ]
 
     print("\nGenerating comparison plot...")
@@ -377,7 +352,6 @@ def main():
     ax.grid(True, which="both", ls="--", alpha=0.5)
 
     plt.tight_layout()
-
     plt.savefig(f"{args.output_basename}.pdf", bbox_inches="tight")
     plt.savefig(f"{args.output_basename}.png", dpi=300, bbox_inches="tight")
     print(f"\nSaved: {args.output_basename}.pdf and {args.output_basename}.png")
