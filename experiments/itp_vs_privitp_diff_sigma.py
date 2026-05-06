@@ -21,48 +21,13 @@ import json
 import random
 import warnings
 
-import matplotlib as mpl
+from plot_utils import configure_matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 
 warnings.filterwarnings("ignore")
 
-def configure_matplotlib():
-    mpl.rcParams.update({
-        "font.size": 14,
-        "axes.titlesize": 16,
-        "axes.labelsize": 15,
-        "xtick.labelsize": 13,
-        "ytick.labelsize": 13,
-        "legend.fontsize": 11,
-        "figure.titlesize": 18,
-        "font.family": "serif",
-        "font.serif": ["Times New Roman", "DejaVu Serif"],
-        "mathtext.fontset": "cm",
-        "axes.linewidth": 1.2,
-        "lines.linewidth": 2.5,
-        "lines.markersize": 8,
-        "axes.grid": True,
-        "grid.alpha": 0.4,
-        "grid.linestyle": "--",
-        "grid.linewidth": 0.6,
-        "xtick.major.size": 5,
-        "ytick.major.size": 5,
-        "xtick.major.width": 1.0,
-        "ytick.major.width": 1.0,
-        "xtick.direction": "in",
-        "ytick.direction": "in",
-        "savefig.dpi": 300,
-        "savefig.bbox": "tight",
-        "savefig.pad_inches": 0.05,
-        "pdf.fonttype": 42,
-        "ps.fonttype": 42,
-        "legend.frameon": True,
-        "legend.framealpha": 0.92,
-        "legend.edgecolor": "black",
-        "legend.fancybox": False,
-    })
 
 
 def parse_args():
@@ -70,7 +35,7 @@ def parse_args():
         description="ITP vs PrivITP under two-phase data splitting, swept over sigma."
     )
     parser.add_argument("--input_file", type=str, required=True,
-                        help="Scored JSONL produced by Experiment 01.")
+                        help="Scored JSONL (see top-level README for schema).")
     parser.add_argument("--output_basename", type=str, default="itp_vs_privitp_split",
                         help="Output filename without extension; PDF and PNG are written.")
     parser.add_argument("--beta", type=float, default=0.1,
