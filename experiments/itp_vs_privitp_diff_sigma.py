@@ -28,10 +28,6 @@ from tqdm import tqdm
 
 warnings.filterwarnings("ignore")
 
-
-# ==========================================
-# Publication-quality matplotlib settings
-# ==========================================
 def configure_matplotlib():
     mpl.rcParams.update({
         "font.size": 14,
